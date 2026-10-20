@@ -7,6 +7,10 @@ export const profile = {
   email: "vemuladivya212@gmail.com",
   linkedin: "https://www.linkedin.com/in/dsv8",
   github: "https://github.com/divyasreevemula8",
+  // the live site's address (used for search engines and link previews)
+  siteUrl: "https://divyasreevemula8.github.io/divyasree-portfolio/",
+  // ✏️ paste the code from Google Search Console's "HTML tag" verification here (just the content="…" value)
+  googleVerification: "",
   promises: ["pipelines built", "messy data cleaned", "AI agents shipped"],
   // drop your photo at public/me.jpg (square works best); a doodle placeholder shows until it exists
   photo: "/me.jpg",

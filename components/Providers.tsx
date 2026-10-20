@@ -7,6 +7,7 @@ import { StarCursor } from "./StarCursor";
 import { CursorTrail } from "./CursorTrail";
 import { StarField } from "./StarField";
 import { SunriseSky } from "./SunriseSky";
+import { AnimatedFavicon } from "./AnimatedFavicon";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -14,6 +15,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
     <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
       {/* reducedMotion="user" makes every animation respect the OS "reduce motion" setting */}
       <MotionConfig reducedMotion="user">
+        <AnimatedFavicon />
         <SunriseSky />
         <StarField />
         <CursorTrail />
