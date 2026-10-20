@@ -1,4 +1,4 @@
-# dsvportfolio
+# divyasree-portfolio
 
 Personal portfolio: **Next.js 15 (App Router) + Tailwind CSS v4 + Framer Motion**, light/dark via `next-themes`, exported as a static site for GitHub Pages.
 
@@ -20,7 +20,7 @@ npm run dev        # http://localhost:3000
 
 ```bash
 npm run build                       # static site in ./out
-BASE_PATH=/dsvportfolio npm run build   # same, as it will be served on GitHub Pages
+BASE_PATH=/divyasree-portfolio npm run build   # same, as it will be served on GitHub Pages
 npx serve out
 ```
 
@@ -28,14 +28,14 @@ npx serve out
 
 1. Push to `main`.
 2. Repo **Settings → Pages → Source: GitHub Actions**.
-3. The workflow publishes to `https://divyasreevemula8.github.io/dsvportfolio/`.
+3. The workflow publishes to `https://divyasreevemula8.github.io/divyasree-portfolio/`.
    (If you rename the repo to `divyasreevemula8.github.io`, delete the `BASE_PATH` line in the workflow.)
 
 Vercel alternative: import the repo, remove `output: "export"` / `basePath` if you like, and deploy with defaults.
 
 ## Résumé link
 
-Drop your file in `public/` (a PDF is best), then set `resumeFile` in `data/profile.ts`. The navbar and hero buttons pick it up automatically, including the GitHub Pages `/dsvportfolio` prefix.
+Drop your file in `public/` (a PDF is best), then set `resumeFile` in `data/profile.ts`. The navbar and hero buttons pick it up automatically, including the GitHub Pages `/divyasree-portfolio` prefix.
 
 ## Experience visuals
 

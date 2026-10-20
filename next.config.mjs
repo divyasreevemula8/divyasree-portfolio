@@ -1,5 +1,5 @@
 // Static export so the site can be hosted on GitHub Pages.
-// For a project page (username.github.io/dsvportfolio) the workflow sets BASE_PATH=/dsvportfolio.
+// For a project page (username.github.io/divyasree-portfolio) the workflow sets BASE_PATH=/divyasree-portfolio.
 const basePath = process.env.BASE_PATH ?? "";
 
 /** @type {import('next').NextConfig} */

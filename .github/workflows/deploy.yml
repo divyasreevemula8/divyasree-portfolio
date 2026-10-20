@@ -27,7 +27,7 @@ jobs:
       - run: npm run build
         env:
           # Project site lives at /<repo-name>. Remove this line if the repo is named <user>.github.io.
-          BASE_PATH: /dsvportfolio
+          BASE_PATH: /divyasree-portfolio
       - run: touch out/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
