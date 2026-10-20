@@ -7,8 +7,9 @@ export const profile = {
   email: "vemuladivya212@gmail.com",
   linkedin: "https://www.linkedin.com/in/dsv8",
   github: "https://github.com/divyasreevemula8",
-  // the live site's address (used for search engines and link previews)
-  siteUrl: "https://divyasreevemula8.github.io/divyasree-portfolio/",
+  // the main address (used for search engines and link previews). The domain is registered at
+  // Cloudflare and served by Vercel; the github.io copy points Google here as the original.
+  siteUrl: "https://www.itsdivyasree.com/",
   // paste the code from Google Search Console's "HTML tag" verification here (just the content="…" value)
   googleVerification: "gYFv9nYhrVGHDaMGJN7H-O-jpH2ac_l_MjneQx1nQ-k",
   promises: ["pipelines built", "messy data cleaned", "AI agents shipped"],

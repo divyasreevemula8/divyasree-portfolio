@@ -28,10 +28,9 @@ npx serve out
 
 1. Push to `main`.
 2. Repo **Settings → Pages → Source: GitHub Actions**.
-3. The workflow publishes to `https://divyasreevemula8.github.io/divyasree-portfolio/`.
-   (If you rename the repo to `divyasreevemula8.github.io`, delete the `BASE_PATH` line in the workflow.)
+3. The workflow publishes a copy to `https://divyasreevemula8.github.io/divyasree-portfolio/`.
 
-Vercel alternative: import the repo, remove `output: "export"` / `basePath` if you like, and deploy with defaults.
+The main site is **https://www.itsdivyasree.com** (`profile.siteUrl`): the domain is registered at Cloudflare, its DNS points to Vercel, and Vercel deploys every push to `main` with default settings. The bare `itsdivyasree.com` redirects to `www`.
 
 ## Résumé link
 
@@ -93,7 +92,7 @@ A fake SQL editor: `INSERT INTO divyasree.inbox`. Run with an empty value → a 
 
 ## Favicon
 
-`app/icon1.svg` is the still robot face (follows the browser's light/dark setting); `app/icon2.png` and `app/apple-icon.png` are PNG copies for Google results and iPhones. `components/AnimatedFavicon.tsx` makes it blink while the page is open and wave ("Come back! 👋" in the tab title) when the visitor switches tabs.
+`app/icon1.svg` is the still robot face (follows the browser's light/dark setting); `app/icon2.png` and `app/apple-icon.png` are PNG copies for Google results and iPhones. `components/AnimatedFavicon.tsx` makes it blink while the page is open and wave (with a "come back" line in the tab title; now and then it also jokes about the work while you're on the page) when the visitor switches tabs.
 
 ## SEO
 
@@ -104,11 +103,10 @@ A fake SQL editor: `INSERT INTO divyasree.inbox`. Run with an empty value → a 
 
 ## Get found on Google
 
-1. Open [Google Search Console](https://search.google.com/search-console) → **Add property** → **URL prefix** → `https://divyasreevemula8.github.io/divyasree-portfolio/`.
-2. Choose **HTML tag** verification. Copy only the `content="…"` value into `googleVerification` in `data/profile.ts`, commit and push, wait for the deploy (about a minute), then click **Verify**.
+1. Open [Google Search Console](https://search.google.com/search-console) → **Add property** → **Domain** → `itsdivyasree.com`.
+2. Google shows a TXT record. Cloudflare usually offers to add it for you; otherwise add it under **DNS → Records → Add record** (Type TXT, Name `@`, Content = the value Google gave), then click **Verify**. This covers `www` and the bare domain at once. (The older github.io property was verified with the HTML tag in `googleVerification`; that can stay.)
 3. In Search Console: **Sitemaps** → submit `sitemap.xml`. Then **URL inspection** → paste the site URL → **Request indexing**.
 4. Link the site from everywhere your name already shows up: LinkedIn (Contact info → Website, and a Featured link), your GitHub profile's Website field and profile README, and the top of your resume.
-5. Optional, strongest boost: a custom domain such as `divyasreevemula.com`, connected under repo **Settings → Pages → Custom domain**.
-6. Optional: [Bing Webmaster Tools](https://www.bing.com/webmasters) → import from Search Console.
+5. Optional: [Bing Webmaster Tools](https://www.bing.com/webmasters) → import from Search Console.
 
 Google usually indexes a new site within a few days to two weeks. Nobody can guarantee the #1 spot (LinkedIn often ranks high for names), but these steps give your own site the best chance.
