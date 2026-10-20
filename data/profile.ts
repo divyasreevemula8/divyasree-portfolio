@@ -10,7 +10,7 @@ export const profile = {
   // the live site's address (used for search engines and link previews)
   siteUrl: "https://divyasreevemula8.github.io/divyasree-portfolio/",
   // ✏️ paste the code from Google Search Console's "HTML tag" verification here (just the content="…" value)
-  googleVerification: "",
+  googleVerification: "gYFv9nYhrVGHDaMGJN7H-O-jpH2ac_l_MjneQx1nQ-k",
   promises: ["pipelines built", "messy data cleaned", "AI agents shipped"],
   // drop your photo at public/me.jpg (square works best); a doodle placeholder shows until it exists
   photo: "/me.jpg",
