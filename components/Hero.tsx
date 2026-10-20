@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 import { profile } from "@/data/profile";
 import { RobotHero } from "./RobotHero";
 
-// Hero: a little robot sweeps bad data off a conveyor belt and turns the good cells into clean
-// values under the name, on the page's sky (sunrise in light mode, stars in dark mode). The résumé lives in the navbar's sand bucket.
+// Hero: a cute robot vacuum slurps bad data off a conveyor belt and turns the good cells into clean
+// facts under the name, on the page's sky (sunrise in light mode, stars in dark mode). The résumé lives in the navbar's sand bucket.
 export function Hero() {
   return (
     <section id="top" className="relative pt-6 pb-14 sm:pt-10 sm:pb-16">
