@@ -7,3 +7,6 @@ next-env.d.ts
 
 # local editor / Claude preview config
 .claude/
+
+# design previews (local only)
+palette-preview/

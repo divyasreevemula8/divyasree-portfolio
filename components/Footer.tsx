@@ -13,11 +13,14 @@ export function Footer() {
       <div className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 px-5 font-mono text-xs text-stone-500">
         <span className="inline-flex items-baseline gap-1">
           © {new Date().getFullYear()} {profile.name} · built with too much
-          {/* emoji font + a little steam, so the coffee actually reads as coffee */}
-          <span className="relative ml-0.5 inline-block font-sans text-base leading-none" role="img" aria-label="coffee">
+          {/* a little drawn cup with rising steam */}
+          <span className="relative ml-0.5 inline-block align-[-2px] leading-none" role="img" aria-label="coffee">
             <span aria-hidden className="steam absolute -top-2 left-[30%] h-2 w-px rounded-full bg-stone-400" />
             <span aria-hidden className="steam absolute -top-2 left-[55%] h-2 w-px rounded-full bg-stone-400 [animation-delay:-0.9s]" />
-            ☕
+            <svg aria-hidden viewBox="0 0 18 16" className="h-4 w-[18px] text-stone-500">
+              <path d="M2.5 5.5h10.2l-.9 6.4c-.2 1.4-1.3 2.3-2.7 2.3H6.1c-1.4 0-2.5-.9-2.7-2.3z" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+              <path d="M12.6 7.2h1.3c1.2 0 1.9.9 1.6 2-.3 1-1.2 1.6-2.3 1.6h-.9" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+            </svg>
           </span>
         </span>
         <nav className="flex gap-5">

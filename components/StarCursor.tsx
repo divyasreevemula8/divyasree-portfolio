@@ -82,7 +82,7 @@ export function StarCursor() {
         >
           {/* light: starfish */}
           <svg viewBox="0 0 24 24" className="h-full w-full dark:hidden">
-            <path d={STAR} fill="#f49e8c" stroke="#d9634d" strokeWidth="0.9" strokeLinejoin="round" opacity={hot || label ? 0.75 : 1} />
+            <path d={STAR} fill="#c7a982" stroke="#94744d" strokeWidth="0.9" strokeLinejoin="round" opacity={hot || label ? 0.75 : 1} />
             <g fill="#fff4f1" opacity=".9">
               <circle cx="12" cy="7" r=".7" />
               <circle cx="16.6" cy="11.4" r=".7" />

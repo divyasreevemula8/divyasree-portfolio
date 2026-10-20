@@ -32,8 +32,8 @@ export const sparks = {
   hoverBoost: 2, // spark multiplier while over links/buttons
   max: 260, // hard cap on live sparks
   colors: {
-    light: ["#1f7f7a", "#6fc0b8", "#ec7f69", "#f8b5a4"],
-    dark: ["#8fd8d2", "#f49e8c", "#f6e3c6", "#ffffff"],
+    light: ["#2d6a85", "#5f9fbd", "#b08d63", "#d9c3a3"],
+    dark: ["#8cc3da", "#c7a982", "#f6e3c6", "#ffffff"],
   },
 };
 

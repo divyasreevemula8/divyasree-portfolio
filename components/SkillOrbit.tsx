@@ -47,7 +47,7 @@ export function SkillOrbit() {
               </motion.span>
             ) : (
               <motion.span key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="font-mono text-[11px] text-stone-500 sm:text-xs">
-                hover a planet 🪐
+                hover a planet
               </motion.span>
             )}
           </AnimatePresence>

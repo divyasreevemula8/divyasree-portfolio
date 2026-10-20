@@ -9,7 +9,7 @@ export const profile = {
   github: "https://github.com/divyasreevemula8",
   // the live site's address (used for search engines and link previews)
   siteUrl: "https://divyasreevemula8.github.io/divyasree-portfolio/",
-  // ✏️ paste the code from Google Search Console's "HTML tag" verification here (just the content="…" value)
+  // paste the code from Google Search Console's "HTML tag" verification here (just the content="…" value)
   googleVerification: "gYFv9nYhrVGHDaMGJN7H-O-jpH2ac_l_MjneQx1nQ-k",
   promises: ["pipelines built", "messy data cleaned", "AI agents shipped"],
   // drop your photo at public/me.jpg (square works best); a doodle placeholder shows until it exists
@@ -26,15 +26,15 @@ export const profile = {
 export const aboutFacts: { col: string; type: string; value: string }[] = [
   { col: "name", type: "varchar", value: "Divyasree Vemula" },
   { col: "role", type: "varchar", value: "Data & AI Engineer" },
-  { col: "based_in", type: "varchar", value: "Winnipeg, MB 🇨🇦" },
+  { col: "based_in", type: "varchar", value: "Winnipeg, MB, Canada" },
   { col: "years_in_data", type: "int", value: "4+" },
   { col: "go_to_stack", type: "text[]", value: "ADF · SSIS · SQL · Python · Gemini" },
   { col: "superpower", type: "varchar", value: "messy data → clean, trusted tables" },
   { col: "degree", type: "varchar", value: "B.E. Electronics & Communication (KITS, India)" },
   { col: "pg_diploma", type: "varchar", value: "Data Analytics (St. Clair College)" },
   { col: "learning_now", type: "varchar", value: "Data Science (WorldQuant University)" },
-  // ✏️ edit me: fill these in and they appear on the site
-  { col: "fuel", type: "varchar", value: "" }, // e.g. "chai ☕"
+  // edit me: fill these in and they appear on the site
+  { col: "fuel", type: "varchar", value: "" }, // e.g. "chai"
   { col: "hobby", type: "varchar", value: "" },
   { col: "fun_fact", type: "varchar", value: "" },
 ];

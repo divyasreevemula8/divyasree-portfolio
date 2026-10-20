@@ -8,8 +8,8 @@ export type LogLine = { text: string; tone?: "cmd" | "ok" | "warn" | "err" | "re
 const toneClass: Record<NonNullable<LogLine["tone"]>, string> = {
   cmd: "text-coral-700 dark:text-coral-300",
   ok: "text-stone-700 dark:text-stone-300",
-  warn: "text-amber-700 dark:text-amber-300",
-  err: "text-rose-600 dark:text-rose-400",
+  warn: "text-coral-700 dark:text-coral-300",
+  err: "text-coral-700 dark:text-coral-300",
   result: "text-sea-700 font-semibold dark:text-sea-300",
   muted: "text-stone-500",
 };
@@ -43,7 +43,7 @@ export function Terminal({ title, lines, children, bodyClass = "max-h-56 min-h-[
     <div className="overflow-hidden rounded-xl border border-stone-200 bg-[#fffdf8] dark:border-stone-800 dark:bg-[#13262e] shadow-[0_12px_30px_-18px_rgba(15,30,38,.35)] dark:shadow-[0_12px_30px_-18px_rgba(15,30,38,.6)]">
       <div className="flex items-center gap-1.5 border-b border-stone-200 px-3 py-2 dark:border-white/5">
         <span className="h-2.5 w-2.5 rounded-full bg-coral-400/90" />
-        <span className="h-2.5 w-2.5 rounded-full bg-amber-300/80" />
+        <span className="h-2.5 w-2.5 rounded-full bg-coral-300/80" />
         <span className="h-2.5 w-2.5 rounded-full bg-sea-400/90" />
         <span className="ml-2 font-mono text-[10px] text-stone-500">{title}</span>
       </div>

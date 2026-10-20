@@ -19,7 +19,7 @@ function Quote({ t }: { t: Testimonial }) {
         whileInView={{ backgroundSize: "100% 45%" }}
         viewport={{ once: true, margin: "-30% 0px" }}
         transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
-        className="bg-transparent bg-[linear-gradient(#f8b5a4,#f8b5a4)] bg-left-bottom bg-no-repeat text-[inherit] [box-decoration-break:clone] [-webkit-box-decoration-break:clone] dark:bg-[linear-gradient(rgba(236,127,105,.45),rgba(236,127,105,.45))]"
+        className="bg-transparent bg-[linear-gradient(#d9c3a3,#d9c3a3)] bg-left-bottom bg-no-repeat text-[inherit] [box-decoration-break:clone] [-webkit-box-decoration-break:clone] dark:bg-[linear-gradient(rgba(236,127,105,.45),rgba(236,127,105,.45))]"
       >
         {t.highlight}
       </motion.mark>

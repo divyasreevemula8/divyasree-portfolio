@@ -2,9 +2,12 @@
 
 import { useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { Caveat } from "next/font/google";
 import { profile } from "@/data/profile";
 import { SectionLabel } from "./Reveal";
 import { DoodleIcon, type DoodleName } from "./DoodleIcon";
+
+const hand = Caveat({ weight: ["700"], subsets: ["latin"], display: "swap" });
 
 type Result = { kind: "ok" | "err"; text: string } | null;
 
@@ -14,7 +17,7 @@ const links: { label: string; href: string; icon: DoodleName }[] = [
   { label: "github", href: profile.github, icon: "code" },
 ];
 
-const confettiColors = ["#6fc0b8", "#f49e8c", "#9ad6cf", "#fcd0c4", "#8fd8d2", "#1f7f7a"];
+const confettiColors = ["#5f9fbd", "#c7a982", "#8cc3da", "#e8dac3", "#8cc3da", "#2d6a85"];
 
 // Pastel confetti that bursts from the Run button.
 function Confetti({ burst }: { burst: number }) {
@@ -52,13 +55,13 @@ export function Contact() {
   const run = () => {
     const text = msg.trim();
     if (!text) {
-      setResult({ kind: "err", text: `ERROR:  null value in column "message" violates not-null constraint\nHINT:  type something nice between the quotes 🙂` });
+      setResult({ kind: "err", text: `ERROR:  null value in column "message" violates not-null constraint\nHINT:  type something nice between the quotes` });
       input.current?.focus();
       return;
     }
-    setResult({ kind: "ok", text: "INSERT 0 1\n✓ 1 row affected 🎉  opening your mail app…" });
+    setResult({ kind: "ok", text: "INSERT 0 1\n✓ 1 row affected  opening your mail app…" });
     setBurst((b) => b + 1);
-    const subject = encodeURIComponent("Hello from your portfolio 👋");
+    const subject = encodeURIComponent("Hello from your portfolio");
     const body = encodeURIComponent(text);
     const mailto = `mailto:${profile.email}?subject=${subject}&body=${body}`;
     const gmail = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(profile.email)}&su=${subject}&body=${body}`;
@@ -84,8 +87,8 @@ export function Contact() {
   return (
     <section id="contact" className="pt-20 sm:pt-24">
       <SectionLabel>Contact</SectionLabel>
-      <h2 className="text-3xl font-semibold tracking-tight sm:text-4xl">
-        Let&apos;s <span className="text-gradient font-mono">JOIN</span> forces.
+      <h2 className="text-2xl font-medium tracking-tight sm:text-3xl">
+        Let&apos;s <span className={`text-[1.25em] text-coral-700 dark:text-coral-300 ${hand.className}`}>join</span> forces.
       </h2>
       <p className="mt-3 max-w-md text-stone-600 dark:text-stone-400">No ORM needed. Write one query and I&apos;ll get back to you.</p>
 
@@ -97,7 +100,7 @@ export function Contact() {
         </div>
         <div className="space-y-1 px-4 py-4 leading-relaxed">
           <p>
-            <span className="text-coral-700 dark:text-coral-300">INSERT INTO</span> <span className="text-sky-700 dark:text-sky-300">divyasree.inbox</span> <span className="text-stone-500 dark:text-stone-400">(message)</span>
+            <span className="text-coral-700 dark:text-coral-300">INSERT INTO</span> <span className="text-sea-700 dark:text-sea-300">divyasree.inbox</span> <span className="text-stone-500 dark:text-stone-400">(message)</span>
           </p>
           <p className="flex flex-wrap items-baseline">
             <span className="text-coral-700 dark:text-coral-300">VALUES</span>
@@ -110,7 +113,7 @@ export function Contact() {
               placeholder="hi! let's talk data"
               aria-label="Your message"
               maxLength={300}
-              className="w-full min-w-0 max-w-full border-b border-dashed sm:w-auto sm:[field-sizing:content] sm:min-w-[12rem] border-emerald-700/40 bg-transparent text-emerald-700 caret-sea-600 outline-none placeholder:text-emerald-700/50 focus:border-emerald-700 dark:border-emerald-300/40 dark:text-emerald-300 dark:caret-sea-300 dark:placeholder:text-emerald-300/40 dark:focus:border-emerald-300"
+              className="w-full min-w-0 max-w-full border-b border-dashed sm:w-auto sm:[field-sizing:content] sm:min-w-[12rem] border-sea-700/40 bg-transparent text-sea-700 caret-sea-600 outline-none placeholder:text-sea-700/50 focus:border-sea-700 dark:border-sea-300/40 dark:text-sea-300 dark:caret-sea-300 dark:placeholder:text-sea-300/40 dark:focus:border-sea-300"
             />
             <span className="text-stone-500 dark:text-stone-400">&apos;);</span>
           </p>
@@ -135,7 +138,7 @@ export function Contact() {
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className={`whitespace-pre-wrap text-[12px] ${result.kind === "ok" ? "text-emerald-700 dark:text-emerald-300" : "text-rose-600 dark:text-rose-400"}`}
+                className={`whitespace-pre-wrap text-[12px] ${result.kind === "ok" ? "text-sea-700 dark:text-sea-300" : "text-coral-700 dark:text-coral-300"}`}
               >
                 {result.text}
               </motion.pre>

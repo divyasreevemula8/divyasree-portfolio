@@ -8,8 +8,8 @@ import { motion, useInView, useReducedMotion } from "framer-motion";
 // proactive check-in bubble pops up. Loops while on screen; still frame for reduced motion.
 
 const MONO = "ui-monospace, monospace";
-const SEA = "#1f7f7a";
-const CORAL = "#ec7f69";
+const SEA = "#2d6a85";
+const CORAL = "#b08d63";
 const GEMINI = "M12 1.5c.6 4.9 2.6 8.5 10.5 10.5-7.9 2-9.9 5.6-10.5 10.5-.6-4.9-2.6-8.5-10.5-10.5 7.9-2 9.9-5.6 10.5-10.5z";
 
 const chats = [
@@ -59,7 +59,7 @@ export function BandhuScene() {
               width={c.w}
               height={11}
               rx={5.5}
-              fill={c.side ? "#bfe6e1" : "#f6e3c6"}
+              fill={c.side ? "#c3d8df" : "#f6e3c6"}
               opacity={0.95}
             />
           ))}
@@ -87,7 +87,7 @@ export function BandhuScene() {
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           style={{ transformBox: "fill-box", transformOrigin: "center" }}
         >
-          <path d={GEMINI} fill="#8b5cf6" opacity=".85" />
+          <path d={GEMINI} fill="#3f84a3" opacity=".85" />
         </motion.g>
       </g>
 
@@ -141,7 +141,7 @@ export function BandhuScene() {
         <rect x="-10" y="0" width="84" height="20" rx="10" fill={CORAL} />
         <path d="M2 19l-4 6 9-6z" fill={CORAL} />
         <text x="32" y="13.5" textAnchor="middle" fontSize="8" fill="white" fontWeight="600">
-          అన్నం తిన్నావా? 🙂
+          అన్నం తిన్నావా?
         </text>
       </motion.g>
       </g>

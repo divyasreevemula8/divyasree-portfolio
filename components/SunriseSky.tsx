@@ -76,8 +76,8 @@ function makeWisp(width: number, dpr: number): HTMLCanvasElement {
     g.scale(rx / ry, 1);
     const grad = g.createRadialGradient(0, 0, 0, 0, 0, ry);
     // lit underside picks up the sunrise colour; tops stay near white
-    grad.addColorStop(0, warm ? "rgba(255,206,170,0.42)" : "rgba(255,255,255,0.5)");
-    grad.addColorStop(1, warm ? "rgba(255,206,170,0)" : "rgba(255,255,255,0)");
+    grad.addColorStop(0, warm ? "rgba(232,220,200,0.42)" : "rgba(255,255,255,0.5)");
+    grad.addColorStop(1, warm ? "rgba(232,220,200,0)" : "rgba(255,255,255,0)");
     g.fillStyle = grad;
     g.beginPath();
     g.arc(0, 0, ry, 0, Math.PI * 2);
@@ -170,8 +170,8 @@ export function SunriseSky() {
       const sky = ctx.createLinearGradient(0, 0, 0, h);
       sky.addColorStop(0, "rgba(198,221,240,0.38)");
       sky.addColorStop(0.45, "rgba(250,240,228,0)");
-      sky.addColorStop(0.8, `rgba(252,214,178,${0.18 + 0.12 * rise})`);
-      sky.addColorStop(1, `rgba(249,180,140,${0.3 + 0.15 * rise})`);
+      sky.addColorStop(0.8, `rgba(238,224,200,${0.18 + 0.12 * rise})`);
+      sky.addColorStop(1, `rgba(226,206,176,${0.3 + 0.15 * rise})`);
       ctx.fillStyle = sky;
       ctx.fillRect(0, 0, w, h);
 
@@ -180,15 +180,15 @@ export function SunriseSky() {
       const sx = w * 0.78;
       const sy = h + R * 1.6 - rise * R * 1.9 - progress * h * 0.28;
       const bloom = ctx.createRadialGradient(sx, sy, R * 0.5, sx, sy, R * 16);
-      bloom.addColorStop(0, `rgba(255,222,160,${0.5 * rise})`);
-      bloom.addColorStop(0.25, `rgba(255,196,150,${0.22 * rise})`);
-      bloom.addColorStop(1, "rgba(255,196,150,0)");
+      bloom.addColorStop(0, `rgba(246,232,200,${0.5 * rise})`);
+      bloom.addColorStop(0.25, `rgba(236,214,180,${0.22 * rise})`);
+      bloom.addColorStop(1, "rgba(236,214,180,0)");
       ctx.fillStyle = bloom;
       ctx.fillRect(0, 0, w, h);
       // a wide flat haze band along the horizon, brightest under the sun
       const haze = ctx.createRadialGradient(sx, h, 0, sx, h, w * 0.9);
-      haze.addColorStop(0, `rgba(255,214,170,${0.35 * rise})`);
-      haze.addColorStop(1, "rgba(255,214,170,0)");
+      haze.addColorStop(0, `rgba(240,226,200,${0.35 * rise})`);
+      haze.addColorStop(1, "rgba(240,226,200,0)");
       ctx.save();
       ctx.translate(0, h);
       ctx.scale(1, 0.18);
@@ -197,9 +197,9 @@ export function SunriseSky() {
       ctx.fillRect(0, 0, w, h * 2);
       ctx.restore();
       const disk = ctx.createRadialGradient(sx, sy, 0, sx, sy, R);
-      disk.addColorStop(0, "rgba(255,253,244,0.95)");
-      disk.addColorStop(0.7, "rgba(255,238,200,0.9)");
-      disk.addColorStop(1, "rgba(255,214,160,0.6)");
+      disk.addColorStop(0, "rgba(255,252,246,0.95)");
+      disk.addColorStop(0.7, "rgba(250,242,226,0.9)");
+      disk.addColorStop(1, "rgba(236,222,196,0.6)");
       ctx.fillStyle = disk;
       ctx.beginPath();
       ctx.arc(sx, sy, R, 0, Math.PI * 2);

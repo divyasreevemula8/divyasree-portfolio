@@ -4,6 +4,7 @@ import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { projects, type Project } from "@/data/profile";
 import { Reveal, SectionLabel } from "./Reveal";
 import { VanetScene } from "./VanetScene";
+import { WaveStack } from "./WaveStack";
 import { BandhuScene } from "./BandhuScene";
 
 function Card({ p }: { p: Project }) {
@@ -47,7 +48,7 @@ function Card({ p }: { p: Project }) {
       />
       <div className="relative">
         <div className="flex items-start justify-between gap-4">
-          <h3 className="text-lg font-semibold">{p.name}</h3>
+          <h3 className="text-base font-medium">{p.name}</h3>
           {p.href && (
             <span className="text-stone-400 transition-transform group-hover:-translate-y-0.5 group-hover:translate-x-0.5 group-hover:text-accent dark:group-hover:text-accent-dark">↗</span>
           )}
@@ -78,13 +79,7 @@ export function Projects() {
       <Reveal>
         <SectionLabel>Projects</SectionLabel>
       </Reveal>
-      <div className="grid gap-5">
-        {projects.map((p, i) => (
-          <Reveal key={p.name} delay={i * 0.08}>
-            <Card p={p} />
-          </Reveal>
-        ))}
-      </div>
+      <WaveStack labels={projects.map((p) => p.name)} items={projects.map((p) => <Card key={p.name} p={p} />)} />
     </section>
   );
 }

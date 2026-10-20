@@ -33,7 +33,7 @@ function makeStars(w: number, h: number): Star[] {
 }
 
 // The Milky Way, drawn once to an offscreen canvas: a diagonal band of coloured nebula glow
-// (violet, blue, a little pink), a brighter core, thousands of dust stars bunched toward the
+// (cool ocean blues), a brighter core, thousands of dust stars bunched toward the
 // centre line, and a dark dust lane splitting the band. Alphas stay low so text reads on top.
 function makeMilkyWay(w: number, h: number, dpr: number) {
   const c = document.createElement("canvas");
@@ -52,7 +52,7 @@ function makeMilkyWay(w: number, h: number, dpr: number) {
     g.fillStyle = grad;
     g.fillRect(x - r, y - r, r * 2, r * 2);
   };
-  const hues = ["170,160,235", "150,180,240", "200,170,230", "235,175,205"]; // violet, blue, lilac, pink
+  const hues = ["150,180,215", "170,195,225", "190,205,225", "215,215,225"]; // cool blues / blue-white
   for (let i = 0; i < 46; i++) {
     const x = (Math.random() - 0.5) * len;
     const y = (Math.random() - 0.5) * band * 0.7;

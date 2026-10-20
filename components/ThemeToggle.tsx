@@ -37,7 +37,7 @@ export function ThemeToggle() {
       >
         {/* day */}
         <span className="relative block h-1/2 overflow-hidden bg-[#bfe3f2]">
-          <span className="absolute right-1 top-1 h-3 w-3 rounded-full bg-amber-300" />
+          <span className="absolute right-1 top-1 h-3 w-3 rounded-full bg-coral-300" />
           <span className="cloud absolute left-0 top-3 h-1.5 w-4 rounded-full bg-white" style={{ "--cloud-d": "7s" } as React.CSSProperties} />
           <span className="cloud absolute left-0 top-[1.15rem] h-1.5 w-3 rounded-full bg-white/90" style={{ "--cloud-d": "11s", animationDelay: "-5s" } as React.CSSProperties} />
           <span className="absolute inset-x-0 bottom-0 h-1.5 bg-[#f6e3c6]" />

@@ -3,12 +3,13 @@
 import { motion } from "framer-motion";
 import { profile } from "@/data/profile";
 import { RobotHero } from "./RobotHero";
+import { BeachShore } from "./BeachShore";
 
 // Hero: a glossy little robot floats along a conveyor belt, bubbling away bad data and polishing good cells into clean
 // facts under the name, on the page's sky (sunrise in light mode, stars in dark mode). The résumé lives in the navbar's sand bucket.
 export function Hero() {
   return (
-    <section id="top" className="relative pt-6 pb-14 sm:pt-10 sm:pb-16">
+    <section id="top" className="relative pt-6 sm:pt-10">
       <RobotHero />
       <ul className="mt-5 flex flex-wrap justify-center gap-x-3 gap-y-1 font-mono text-xs text-stone-600 sm:text-sm dark:text-stone-400">
         {profile.promises.map((p, i) => (
@@ -18,6 +19,7 @@ export function Hero() {
           </motion.li>
         ))}
       </ul>
+      <BeachShore />
     </section>
   );
 }

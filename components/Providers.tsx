@@ -8,6 +8,7 @@ import { CursorTrail } from "./CursorTrail";
 import { StarField } from "./StarField";
 import { SunriseSky } from "./SunriseSky";
 import { AnimatedFavicon } from "./AnimatedFavicon";
+import { ResumeTab } from "./ResumeTab";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -22,6 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         {children}
         <SparkCursor />
         <StarCursor />
+        <ResumeTab />
       </MotionConfig>
     </ThemeProvider>
   );

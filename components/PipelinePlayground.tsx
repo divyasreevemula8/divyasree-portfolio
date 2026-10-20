@@ -38,7 +38,7 @@ export function PipelinePlayground({ viz, pipeline, onLog, compact = false }: { 
   const [off, setOff] = useState<Set<number>>(new Set());
   const [tuned, setTuned] = useState(false);
   const [broken, setBroken] = useState(false);
-  const [slow, setSlow] = useState(true); // 🐢 by default so people can follow each step
+  const [slow, setSlow] = useState(true); // slow by default so people can follow each step
   const [showData, setShowData] = useState(!compact); // compact mode keeps the table tucked away until asked
   const [hasRun, setHasRun] = useState(false);
   const [running, setRunning] = useState(false);
@@ -164,8 +164,8 @@ export function PipelinePlayground({ viz, pipeline, onLog, compact = false }: { 
               ) : null,
             )}
             {hasTuned && <Switch on={tuned} onChange={setTuned} label={tunedLabel} disabled={running} />}
-            <Switch on={slow} onChange={setSlow} label={slow ? "🐢 slow-mo" : "🐇 normal speed"} disabled={running} />
-            <Switch on={broken} onChange={setBroken} label="💥 break it" disabled={running} />
+            <Switch on={slow} onChange={setSlow} label={slow ? "slow-mo" : "normal speed"} disabled={running} />
+            <Switch on={broken} onChange={setBroken} label="break it" disabled={running} />
           </div>
 
           {/* stages */}
@@ -181,9 +181,9 @@ export function PipelinePlayground({ viz, pipeline, onLog, compact = false }: { 
                     title={n.desc}
                     className={`relative rounded-xl border px-3 py-1.5 text-left transition-colors ${
                       st === "fail"
-                        ? "border-rose-400 bg-rose-50 dark:bg-rose-950/40"
+                        ? "border-coral-300 bg-coral-50 dark:bg-coral-950/40"
                         : st === "ok"
-                          ? "border-emerald-300 bg-emerald-50/70 dark:border-emerald-700 dark:bg-emerald-950/30"
+                          ? "border-sea-300 bg-sea-50/70 dark:border-sea-700 dark:bg-sea-950/30"
                           : st === "active" || st === "retry"
                             ? "border-sea-400 bg-sea-50 dark:bg-sea-950/50"
                             : st === "skipped"
@@ -237,7 +237,7 @@ export function PipelinePlayground({ viz, pipeline, onLog, compact = false }: { 
                 output of <span className="text-accent dark:text-accent-dark">{viz.nodes[selected]?.label}</span>
                 {!results && selected === 0 && " · press ▶ run"}
               </span>
-              {r.removed.size > 0 && <span className="text-rose-500">−{r.removed.size} rows</span>}
+              {r.removed.size > 0 && <span className="text-coral-700">−{r.removed.size} rows</span>}
             </p>
             <div className="overflow-x-auto rounded-lg border border-stone-200 dark:border-stone-800">
               <table className="w-full font-mono text-[11px]">
@@ -254,7 +254,7 @@ export function PipelinePlayground({ viz, pipeline, onLog, compact = false }: { 
                         animate={gone ? { opacity: 0.55, x: 0, backgroundColor: "rgba(244,63,94,0.10)" } : { opacity: 1, x: 0, backgroundColor: "rgba(0,0,0,0)" }}
                         exit={{ opacity: 0 }}
                         transition={{ delay: k * 0.03 }}
-                        className={`border-t border-stone-100 dark:border-stone-800/60 ${gone ? "text-rose-500 line-through" : "text-stone-700 dark:text-stone-300"}`}
+                        className={`border-t border-stone-100 dark:border-stone-800/60 ${gone ? "text-coral-700 line-through" : "text-stone-700 dark:text-stone-300"}`}
                       >
                         {cols.map((c) => (
                           <td key={c} className={`whitespace-nowrap px-2 py-1 ${row[c] === null || row[c] === "" ? "text-stone-400" : ""}`}>

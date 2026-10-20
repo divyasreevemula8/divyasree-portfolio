@@ -7,48 +7,48 @@
   --font-sans: var(--font-inter), system-ui, sans-serif;
   --font-mono: var(--font-mono-jb), ui-monospace, monospace;
 
-  /* Beach palette: sea (text-safe accent), seafoam & shell (soft fills), coral (pop). Mostly flat. */
-  --color-accent: #1f7f7a;
-  --color-accent-dark: #8fd8d2;
-  --color-seafoam: #bfe6e1;
-  --color-shell: #f6e3c6;
+  /* Sand & ocean palette: "sea" = ocean blue accent, "coral" = wet sand / driftwood secondary, stone = dry sand (light) / deep sea night (dark). */
+  --color-accent: #2d6a85;
+  --color-accent-dark: #8cc3da;
+  --color-seafoam: #c3d8df;
+  --color-shell: #ece2d2;
 
-  --color-sea-50: #effaf8;
-  --color-sea-100: #d8f2ee;
-  --color-sea-200: #bfe6e1;
-  --color-sea-300: #9ad6cf;
-  --color-sea-400: #6fc0b8;
-  --color-sea-500: #3fa39b;
-  --color-sea-600: #1f7f7a;
-  --color-sea-700: #1a6662;
-  --color-sea-800: #174f4c;
-  --color-sea-900: #123b39;
-  --color-sea-950: #0b2523;
+  --color-sea-50: #eef4f6;
+  --color-sea-100: #dfe9ec;
+  --color-sea-200: #c3d8df;
+  --color-sea-300: #8cc3da;
+  --color-sea-400: #5f9fbd;
+  --color-sea-500: #3f84a3;
+  --color-sea-600: #2d6a85;
+  --color-sea-700: #245770;
+  --color-sea-800: #1d4558;
+  --color-sea-900: #173645;
+  --color-sea-950: #0e2430;
 
-  --color-coral-50: #fff4f1;
-  --color-coral-100: #ffe6df;
-  --color-coral-200: #fcd0c4;
-  --color-coral-300: #f8b5a4;
-  --color-coral-400: #f49e8c;
-  --color-coral-500: #ec7f69;
-  --color-coral-600: #d9634d;
-  --color-coral-700: #b54d3b;
-  --color-coral-800: #8f3e31;
-  --color-coral-900: #6e3329;
-  --color-coral-950: #3b1813;
+  --color-coral-50: #faf6ef;
+  --color-coral-100: #f3ebdd;
+  --color-coral-200: #e8dac3;
+  --color-coral-300: #d9c3a3;
+  --color-coral-400: #c7a982;
+  --color-coral-500: #b08d63;
+  --color-coral-600: #94744d;
+  --color-coral-700: #7a5f3e;
+  --color-coral-800: #5f4a31;
+  --color-coral-900: #463726;
+  --color-coral-950: #2a2117;
 
   /* Neutrals re-tinted: warm sand in light mode, deep ocean night in dark mode */
-  --color-stone-50: #fbf6ec;
-  --color-stone-100: #f5eee0;
-  --color-stone-200: #e9dfcc;
-  --color-stone-300: #d6cab3;
-  --color-stone-400: #a99f8d;
-  --color-stone-500: #7b7468;
-  --color-stone-600: #5b5a55;
-  --color-stone-700: #3f4a4f;
-  --color-stone-800: #24353d;
-  --color-stone-900: #172a33;
-  --color-stone-950: #0f1e26;
+  --color-stone-50: #f4ece0;
+  --color-stone-100: #ece2d2;
+  --color-stone-200: #e0d3bc;
+  --color-stone-300: #cbbca2;
+  --color-stone-400: #9c9080;
+  --color-stone-500: #6e665b;
+  --color-stone-600: #4f4a43;
+  --color-stone-700: #2c3f49;
+  --color-stone-800: #1f313b;
+  --color-stone-900: #16252e;
+  --color-stone-950: #0f1c24;
 }
 
 html { scroll-behavior: smooth; scroll-padding-top: 5rem; overflow-x: clip; } /* clip on <html> is what stops sideways scrolling on phones */
@@ -117,4 +117,8 @@ html.theme-transition, html.theme-transition *, html.theme-transition *::before,
 
 
 /* Light mode: the muted grey sits just under 4.5:1 on the cream background, so darken it a touch */
-html:not(.dark) { --color-stone-500: #6b6458; }
+html:not(.dark) { --color-stone-500: #645c52; }
+
+/* Section titles written in sand: letters look pressed in (dark top edge, light lower lip) */
+.sand-letters { text-shadow: 0 -1px 0 rgba(60,45,30,.35), 0 1.5px 0 rgba(255,250,240,.7); }
+.dark .sand-letters { text-shadow: 0 -1px 0 rgba(0,0,0,.6), 0 1px 0 rgba(255,255,255,.12); }

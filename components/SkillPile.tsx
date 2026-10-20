@@ -381,7 +381,7 @@ export function SkillPile() {
               onClick={shake}
               className="rounded-full border border-stone-200 bg-white/70 px-3 py-1.5 text-stone-600 transition hover:-rotate-3 hover:border-accent hover:text-accent active:scale-95 dark:border-stone-800 dark:bg-stone-900/60 dark:text-stone-300 dark:hover:border-accent-dark dark:hover:text-accent-dark"
             >
-              🫨 shake
+              shake
             </button>
           </div>
         </>
