@@ -1,16 +1,17 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Chewy } from "next/font/google";
 import { profile } from "@/data/profile";
 import { asset } from "@/lib/asset";
 
-// The hero: a cute robot vacuum sits at the end of a conveyor belt of messy cells. Bad cells
-// (NULL, dup, #REF!, impossible dates) get slurped up with a whoosh; good ones hop over it, get
-// tidied and float up into a row of clean facts under the name. Its eyes follow the cursor, and
-// every hover (or tap) it says the next line: hi, how are you, then something silly.
-// One rAF clock drives the belt; reduced motion shows the finished, still scene.
+// The hero: a glossy little robot floats along a conveyor belt of messy cells, glides to each one
+// and cleans it. Bad cells (NULL, dup, #REF!, impossible dates) get sucked in and come out as soap
+// bubbles; good ones get polished and float up into a row of clean facts under the name. Its eyes
+// follow the cursor. Put the cursor on it (or tap it) and it stops, the belt pauses, and it says
+// the next line: hi, how are you, then something silly.
+// One rAF clock drives everything; reduced motion shows a finished, still scene.
 
 const fun = Chewy({ weight: "400", subsets: ["latin"], display: "swap" });
 const MONO = "var(--font-mono-jb), ui-monospace, monospace";
@@ -40,37 +41,53 @@ const FUNNY = [
 ];
 const lineAt = (n: number) => (n < LINES.length ? LINES[n] : FUNNY[(n - LINES.length) % FUNNY.length]);
 
-// scene geometry, in SVG units (viewBox 0 0 640 190)
+// scene geometry, in SVG units (viewBox 0 0 640 210)
 const W = 640;
-const BELT_Y = 150;
+const H = 210;
+const BELT_Y = 170;
+const BELT_END = 600;
 const CELL_H = 24;
-const VAC_X = 492; // vacuum centre
-const MOUTH_X = VAC_X - 50; // where bad cells get slurped
-const SPEED = 70; // belt speed, units per second
-const GAP = 14;
+const CELL_Y = BELT_Y - CELL_H - 3;
+const HEAD_Y = 58; // robot head centre (before bob)
+const BELLY_Y = 106;
+const SPEED = 55; // belt speed, units per second
+const GAP = 16;
+const MAX_X = 570;
 
-type Cell = { id: number; text: string; clean: string | null; x: number; w: number; state: "belt" | "slurped" | "hopped"; t0: number };
+type Cell = { id: number; text: string; clean: string | null; x: number; w: number; state: "belt" | "sucked" | "polished"; t0: number; rx: number; burst?: boolean };
+type Bubble = { id: number; x: number; y: number; r: number; vx: number; vy: number; born: number; life: number };
 const widthOf = (s: string) => s.length * 7.3 + 18;
+const rand = (a: number, b: number) => a + Math.random() * (b - a);
 
 export function RobotHero() {
   const calm = useReducedMotion();
+  const uid = useId().replace(/[^\w-]/g, "");
   const svg = useRef<SVGSVGElement>(null);
   const cells = useRef<Cell[]>([]);
+  const bubbles = useRef<Bubble[]>([]);
   const feed = useRef(0);
   const nextId = useRef(0); // survives effect re-runs, so React keys never repeat
-  const slurpAt = useRef(-10);
   const clock = useRef(0);
+  // robot state
+  const rx = useRef(380);
+  const rv = useRef(0);
+  const cleaning = useRef<{ id: number; t0: number } | null>(null);
+  const beltSpeed = useRef(SPEED);
+  const paused = useRef(false);
+  const lastIdleBubble = useRef(0);
+
   const [, setFrame] = useState(0);
   const [clean, setClean] = useState<string[]>([]);
   const [look, setLook] = useState({ x: 0, y: 0 });
   const [blink, setBlink] = useState(false);
-  // hover talk: which line we're on, and whether the bubble is showing
+  // hover talk
   const [said, setSaid] = useState(-1);
   const [talking, setTalking] = useState(false);
   const [hover, setHover] = useState(false);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const resumeTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  // phones: frame only the vacuum's end of the belt so the cell text stays readable
+  // phones: frame the right part of the belt so the cell text stays readable
   const [vbX, setVbX] = useState(0);
   const vbXRef = useRef(0);
   vbXRef.current = vbX;
@@ -86,7 +103,7 @@ export function RobotHero() {
     if (calm) setClean(CLEAN_ORDER);
   }, [calm]);
 
-  // belt clock
+  // one clock: belt, robot, bubbles
   useEffect(() => {
     if (calm) return;
     let raf = 0;
@@ -94,47 +111,105 @@ export function RobotHero() {
     const next = (): Feed => {
       const i = feed.current++;
       if (i < FIRST_PASS.length) return FIRST_PASS[i];
-      // after the first pass: mostly junk, now and then a good cell again
       return i % 3 === 0 ? FIRST_PASS.filter((f) => f.clean)[i % 4] : { raw: JUNK[i % JUNK.length], clean: null };
     };
-    // start with the belt already loaded, the first cell just short of the vacuum
+    const addCell = (x: number) => {
+      const f = next();
+      const w = widthOf(f.raw);
+      cells.current.push({ id: nextId.current++, text: f.raw, clean: f.clean, x: x - w, w, state: "belt", t0: 0, rx: 0 });
+      return w;
+    };
+    // start with the belt loaded, the first cell just short of the robot
     if (!cells.current.length) {
-      let right = MOUTH_X - 20;
-      for (let k = 0; k < 4; k++) {
-        const f = next();
-        const w = widthOf(f.raw);
-        cells.current.push({ id: nextId.current++, text: f.raw, clean: f.clean, x: right - w, w, state: "belt", t0: 0 });
-        right -= w + GAP;
-      }
+      let right = rx.current + 30;
+      for (let k = 0; k < 4; k++) right -= addCell(right) + GAP;
     }
+    const puff = (x: number, y: number, n: number, t: number) => {
+      for (let k = 0; k < n; k++)
+        bubbles.current.push({ id: nextId.current++, x: x + rand(-8, 8), y: y + rand(-6, 6), r: rand(3.5, 9), vx: rand(-22, 22), vy: rand(-48, -24), born: t, life: rand(1.4, 2.6) });
+    };
+    const finish = (c: Cell, t: number) => {
+      c.t0 = t;
+      c.rx = rx.current;
+      if (c.clean) {
+        c.state = "polished";
+        const v = c.clean;
+        setClean((s) => (s.includes(v) ? s : [...s, v].sort((a, b) => CLEAN_ORDER.indexOf(a) - CLEAN_ORDER.indexOf(b))));
+      } else {
+        c.state = "sucked";
+      }
+    };
+
     const tick = (now: number) => {
       const dt = Math.min((now - last) / 1000, 0.05);
       last = now;
       clock.current += dt;
       const t = clock.current;
       const list = cells.current;
+      const minX = (vbXRef.current || 0) + 70;
 
-      const newest = list[list.length - 1];
-      if (!newest || newest.x > 10 + GAP) {
-        const f = next();
-        list.push({ id: nextId.current++, text: f.raw, clean: f.clean, x: 10 - widthOf(f.raw), w: widthOf(f.raw), state: "belt", t0: 0 });
-      }
+      // belt eases to a stop while the robot is being hovered
+      beltSpeed.current += ((paused.current ? 0 : SPEED) - beltSpeed.current) * (1 - Math.exp(-dt * 6));
+
+      const newest = list.filter((c) => c.state === "belt").reduce<Cell | null>((a, c) => (!a || c.x < a.x ? c : a), null);
+      if (!newest || newest.x > 10 + GAP) addCell(10);
+
       for (const c of list) {
         if (c.state !== "belt") continue;
-        c.x += SPEED * dt;
-        if (c.x + c.w >= MOUTH_X - 4) {
-          c.t0 = t;
-          if (c.clean) {
-            c.state = "hopped";
-            const v = c.clean;
-            setClean((s) => (s.includes(v) ? s : [...s, v].sort((a, b) => CLEAN_ORDER.indexOf(a) - CLEAN_ORDER.indexOf(b))));
-          } else {
-            c.state = "slurped";
-            slurpAt.current = t;
+        c.x += beltSpeed.current * dt;
+        if (c.x + c.w > BELT_END) finish(c, t); // safety net: nothing piles up at the end
+      }
+
+      // robot: glide to the most urgent cell (furthest along), match its speed, clean it
+      const cur = cleaning.current ? list.find((c) => c.id === cleaning.current!.id && c.state === "belt") : null;
+      if (!cur) cleaning.current = null;
+      let goal: number;
+      if (paused.current) {
+        goal = rx.current;
+      } else if (cur) {
+        goal = cur.x + cur.w / 2;
+        if (t - cleaning.current!.t0 > 0.45) {
+          finish(cur, t);
+          cleaning.current = null;
+        }
+      } else {
+        const target = list
+          .filter((c) => c.state === "belt" && c.x + c.w / 2 > minX)
+          .reduce<Cell | null>((a, c) => (!a || c.x > a.x ? c : a), null);
+        if (target) {
+          goal = target.x + target.w / 2;
+          if (Math.abs(goal - rx.current) < 6) cleaning.current = { id: target.id, t0: t };
+        } else {
+          goal = rx.current + Math.sin(t * 0.7) * 4; // idle drift
+          if (t - lastIdleBubble.current > 2.4) {
+            lastIdleBubble.current = t;
+            puff(rx.current, BELLY_Y - 10, 1, t);
           }
         }
       }
-      cells.current = list.filter((c) => c.state === "belt" || t - c.t0 < 1.4);
+      goal = Math.min(Math.max(goal, minX - 40), MAX_X);
+      // hovered: freeze on the spot, so it doesn't drift out from under the cursor
+      const want = paused.current ? 0 : Math.max(-150, Math.min(150, (goal - rx.current) * 4 + (cur ? beltSpeed.current : 0)));
+      rv.current = paused.current ? 0 : rv.current + (want - rv.current) * (1 - Math.exp(-dt * 7));
+      rx.current = Math.min(Math.max(rx.current + rv.current * dt, minX - 40), MAX_X);
+
+      // sucked cells turn into bubbles as they reach the robot
+      for (const c of list) {
+        if (c.state === "sucked" && t - c.t0 >= 0.45 && !c.burst) {
+          c.burst = true;
+          puff(c.rx, BELLY_Y, 5, t);
+        }
+      }
+      cells.current = list.filter((c) => c.state === "belt" || t - c.t0 < 1.3);
+
+      for (const b of bubbles.current) {
+        const age = t - b.born;
+        b.x += (b.vx + Math.sin(age * 4 + b.id) * 10) * dt;
+        b.y += b.vy * dt;
+        b.vx *= 0.98;
+      }
+      bubbles.current = bubbles.current.filter((b) => t - b.born < b.life && b.y > -20);
+
       setFrame((f) => (f + 1) % 1e6);
       raf = requestAnimationFrame(tick);
     };
@@ -151,11 +226,11 @@ export function RobotHero() {
         const r = svg.current?.getBoundingClientRect();
         if (!r) return;
         const s = r.width / (W - vbXRef.current);
-        const dx = e.clientX - (r.left + (VAC_X - vbXRef.current) * s);
-        const dy = e.clientY - (r.top + 118 * s);
+        const dx = e.clientX - (r.left + (rx.current - vbXRef.current) * s);
+        const dy = e.clientY - (r.top + HEAD_Y * s);
         const d = Math.hypot(dx, dy) || 1;
-        const k = Math.min(1, d / 160) * 2.6;
-        setLook({ x: (dx / d) * k, y: (dy / d) * k });
+        const k = Math.min(1, d / 180) * 5;
+        setLook({ x: (dx / d) * k, y: (dy / d) * k * 0.7 });
       });
     };
     window.addEventListener("pointermove", onMove);
@@ -168,37 +243,49 @@ export function RobotHero() {
   // blink every few seconds
   useEffect(() => {
     if (calm) return;
-    let t: ReturnType<typeof setTimeout>;
+    let tm: ReturnType<typeof setTimeout>;
     const loop = () => {
-      t = setTimeout(() => {
+      tm = setTimeout(() => {
         setBlink(true);
         setTimeout(() => setBlink(false), 130);
         loop();
       }, 2500 + Math.random() * 3000);
     };
     loop();
-    return () => clearTimeout(t);
+    return () => clearTimeout(tm);
   }, [calm]);
 
-  useEffect(() => () => clearTimeout(hideTimer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(hideTimer.current);
+      clearTimeout(resumeTimer.current);
+    },
+    [],
+  );
 
-  const say = () => {
+  const stopAndTalk = () => {
     clearTimeout(hideTimer.current);
+    clearTimeout(resumeTimer.current);
+    paused.current = true;
     setSaid((n) => n + 1);
     setTalking(true);
   };
-  const quiet = (ms: number) => {
+  const letGo = (talkMs: number, resumeMs: number) => {
     clearTimeout(hideTimer.current);
-    hideTimer.current = setTimeout(() => setTalking(false), ms);
+    clearTimeout(resumeTimer.current);
+    hideTimer.current = setTimeout(() => setTalking(false), talkMs);
+    resumeTimer.current = setTimeout(() => (paused.current = false), resumeMs);
   };
 
   const t = clock.current;
-  const sinceSlurp = t - slurpAt.current;
-  const gulp = !calm && sinceSlurp < 0.55 ? Math.sin((sinceSlurp / 0.55) * Math.PI) : 0; // squash & stretch
-  const wobble = calm ? 0 : Math.sin(t * 2.2) * 1.5;
+  const x = calm ? 380 : rx.current;
+  const bob = calm || hover ? 0 : Math.sin(t * 2.4) * 3; // still while chatting, so hover stays steady
+  const tilt = calm || hover ? 0 : Math.max(-9, Math.min(9, rv.current * 0.07));
+  const swing = calm ? 0 : Math.sin(t * 6) * Math.min(1, Math.abs(rv.current) / 60) * 14;
   const line = said >= 0 ? lineAt(said) : "";
   const bubbleW = line.length * 6.6 + 26;
-  const bubbleX = Math.min(Math.max(VAC_X - bubbleW / 2, vbX + 4), W - 4 - bubbleW);
+  const bubbleX = Math.min(Math.max(x - bubbleW / 2, vbX + 4), W - 4 - bubbleW);
+  const g = (n: string) => `${n}-${uid}`;
 
   return (
     <div className="flex flex-col items-center text-center">
@@ -211,7 +298,7 @@ export function RobotHero() {
       <h1 className={`text-5xl leading-[0.95] text-stone-900 sm:text-7xl dark:text-stone-50 ${fun.className}`}>{profile.name}</h1>
       <p className="mt-3 font-mono text-xs font-semibold uppercase tracking-[0.22em] text-sea-700 sm:text-sm dark:text-sea-300">{profile.title}</p>
 
-      {/* clean facts the vacuum has produced so far */}
+      {/* clean facts the robot has produced so far */}
       <ul aria-label="Cleaned values" className="mt-3 flex min-h-[26px] flex-wrap justify-center gap-1.5 font-mono text-[11px]">
         <AnimatePresence>
           {clean.map((v) => (
@@ -234,170 +321,218 @@ export function RobotHero() {
 
       <svg
         ref={svg}
-        viewBox={`${vbX} 0 ${W - vbX} 190`}
-        className="mt-4 w-full max-w-2xl overflow-visible"
+        viewBox={`${vbX} 0 ${W - vbX} ${H}`}
+        className="mt-2 w-full max-w-2xl overflow-visible"
         role="img"
-        aria-label="A cute robot vacuum at the end of a conveyor belt slurps up bad data like NULL and duplicates, while good values hop over it and get cleaned"
+        aria-label="A cute glossy robot floats along a conveyor belt, turning bad data like NULL and duplicates into soap bubbles and polishing good values into clean facts"
       >
+        <defs>
+          <radialGradient id={g("shell")} cx="35%" cy="30%" r="80%">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset=".55" stopColor="#fbf6ec" />
+            <stop offset="1" stopColor="#e6d7bd" />
+          </radialGradient>
+          <radialGradient id={g("pink")} cx="35%" cy="30%" r="85%">
+            <stop offset="0" stopColor="#fcd0c4" />
+            <stop offset=".6" stopColor="#f49e8c" />
+            <stop offset="1" stopColor="#d9634d" />
+          </radialGradient>
+          <linearGradient id={g("visor")} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#1d3a40" />
+            <stop offset="1" stopColor="#0b1a1e" />
+          </linearGradient>
+          <linearGradient id={g("gold")} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#9ad6cf" />
+            <stop offset="1" stopColor="#1f7f7a" />
+          </linearGradient>
+          <radialGradient id={g("bubble")} cx="50%" cy="50%" r="50%">
+            <stop offset=".55" stopColor="#ffffff" stopOpacity="0" />
+            <stop offset=".78" stopColor="#9ad6cf" stopOpacity=".35" />
+            <stop offset=".9" stopColor="#f8b5a4" stopOpacity=".55" />
+            <stop offset="1" stopColor="#6fc0b8" stopOpacity=".7" />
+          </radialGradient>
+          <filter id={g("glow")} x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="1.8" result="b" />
+            <feMerge>
+              <feMergeNode in="b" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <clipPath id={g("head")}>
+            <circle cx="0" cy={HEAD_Y} r="27" />
+          </clipPath>
+          <clipPath id={g("belt")}>
+            <rect x={Math.max(10, vbX)} y="-200" width={W + 400} height="600" />
+          </clipPath>
+        </defs>
+
         {/* belt */}
-        <rect x="10" y={BELT_Y} width={VAC_X + 40} height="14" rx="7" className="fill-stone-600 dark:fill-stone-500" />
-        {[30, 140, 250, 360, 470].map((x) => (
-          <g key={x}>
-            <circle cx={x} cy={BELT_Y + 7} r="10" className="fill-stone-400 dark:fill-stone-600" />
-            <circle cx={x} cy={BELT_Y + 7} r="3.5" className="fill-stone-100 dark:fill-stone-300" />
+        <rect x="10" y={BELT_Y} width={BELT_END - 10} height="14" rx="7" className="fill-stone-600 dark:fill-stone-500" />
+        {[30, 140, 250, 360, 470, 580].map((wx) => (
+          <g key={wx}>
+            <circle cx={wx} cy={BELT_Y + 7} r="10" className="fill-stone-400 dark:fill-stone-600" />
+            <circle cx={wx} cy={BELT_Y + 7} r="3.5" className="fill-stone-100 dark:fill-stone-300" />
           </g>
         ))}
 
-        <clipPath id="robot-belt-clip">
-          <rect x={Math.max(10, vbX)} y="-200" width={W + 400} height="600" />
-        </clipPath>
-        <g clipPath="url(#robot-belt-clip)">
+        {/* robot's soft shadow on the belt */}
+        <ellipse cx={x} cy={BELT_Y - 1} rx={24 - bob} ry="4" className="fill-stone-900/20 dark:fill-black/40" />
+
+        {/* cells */}
+        <g clipPath={`url(#${g("belt")})`}>
           {calm
             ? FIRST_PASS.slice(0, 4).map((f, i) => {
                 const w = widthOf(f.raw);
-                const x = 20 + FIRST_PASS.slice(0, i).reduce((a, g) => a + widthOf(g.raw) + GAP, 0);
-                return <CellView key={i} x={x} y={BELT_Y - CELL_H - 3} w={w} text={f.raw} kind={f.clean ? "raw" : "bad"} />;
+                const cx = 40 + FIRST_PASS.slice(0, i).reduce((a, h) => a + widthOf(h.raw) + GAP, 0);
+                return <CellView key={i} x={cx} y={CELL_Y} w={w} text={f.raw} kind={f.clean ? "raw" : "bad"} />;
               })
             : cells.current.map((c) => {
                 const age = t - c.t0;
-                const baseY = BELT_Y - CELL_H - 3;
                 if (c.state === "belt") {
-                  return <CellView key={c.id} x={c.x} y={baseY} w={c.w} text={c.text} kind={c.clean ? "raw" : "bad"} />;
+                  const active = cleaning.current?.id === c.id;
+                  return <CellView key={c.id} x={c.x} y={CELL_Y} w={c.w} text={c.text} kind={c.clean ? "raw" : "bad"} glow={active} />;
                 }
-                if (c.state === "slurped") {
-                  // pulled into the mouth: shrinks, spins, swirls in
-                  const p = Math.min(age / 0.5, 1);
-                  const ease = p * p;
-                  const x = c.x + (MOUTH_X + 6 - (c.x + c.w / 2)) * ease;
-                  const y = baseY + Math.sin(p * Math.PI) * -10 + ease * 8;
-                  return <CellView key={c.id} x={x} y={y} w={c.w} text={c.text} kind="bad" rotate={p * 300} scale={1 - p} opacity={1 - p * 0.4} />;
+                if (c.state === "sucked") {
+                  // drawn up into the robot's belly in a little swirl, then gone (bubbles take over)
+                  const p = Math.min(age / 0.45, 1);
+                  const e = p * p;
+                  const cx = c.x + (c.rx - (c.x + c.w / 2)) * e + Math.sin(p * Math.PI * 2) * 8 * (1 - p);
+                  const cy = CELL_Y + (BELLY_Y - CELL_Y) * e;
+                  return <CellView key={c.id} x={cx} y={cy} w={c.w} text={c.text} kind="bad" rotate={p * 220} scale={1 - p} opacity={p >= 1 ? 0 : 1} />;
                 }
-                // good cell: hops over the vacuum, gets tidied mid-air, then floats up and fades
-                const hop = Math.min(age / 0.8, 1);
-                const x = c.x + age * 130;
-                const y = baseY - Math.sin(hop * Math.PI) * 62 - Math.max(0, age - 0.8) * 120;
-                const tidy = age > 0.3;
+                // polished: sparkles, turns clean, floats up and fades
+                const tidy = age > 0.25;
+                const up = Math.max(0, age - 0.35);
                 return (
-                  <CellView
-                    key={c.id}
-                    x={x}
-                    y={y}
-                    w={tidy ? widthOf(c.clean!) : c.w}
-                    text={tidy ? c.clean! : c.text}
-                    kind={tidy ? "clean" : "raw"}
-                    opacity={Math.max(0, 1 - Math.max(0, age - 0.8) / 0.55)}
-                  />
+                  <g key={c.id}>
+                    <CellView
+                      x={c.x}
+                      y={CELL_Y - up * 110}
+                      w={tidy ? widthOf(c.clean!) : c.w}
+                      text={tidy ? c.clean! : c.text}
+                      kind={tidy ? "clean" : "raw"}
+                      opacity={Math.max(0, 1 - up / 0.9)}
+                    />
+                    {age < 0.6 &&
+                      [
+                        [-6, -4],
+                        [c.w + 4, 2],
+                        [c.w / 2, -10],
+                      ].map(([sx, sy], i) => (
+                        <path
+                          key={i}
+                          transform={`translate(${c.x + sx} ${CELL_Y + sy}) scale(${0.6 + Math.sin((age / 0.6) * Math.PI) * 0.6})`}
+                          d="M0-7l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"
+                          className="fill-amber-300"
+                        />
+                      ))}
+                  </g>
                 );
               })}
         </g>
 
-        {/* the vacuum buddy (hover or tap: it talks) */}
+        {/* soap bubbles */}
+        {!calm &&
+          bubbles.current.map((b) => {
+            const age = t - b.born;
+            const pop = Math.max(0, age - (b.life - 0.18)) / 0.18; // last moment: swell and vanish
+            return (
+              <g key={b.id} opacity={1 - pop}>
+                <circle cx={b.x} cy={b.y} r={b.r * (1 + pop * 0.4)} fill={`url(#${g("bubble")})`} stroke="rgba(255,255,255,.55)" strokeWidth=".6" />
+                <ellipse cx={b.x - b.r * 0.35} cy={b.y - b.r * 0.4} rx={b.r * 0.28} ry={b.r * 0.16} fill="#fff" opacity=".8" />
+              </g>
+            );
+          })}
+
+        {/* the robot: put the cursor on it (or tap) and it stops to chat */}
         <g
+          transform={`translate(${x} ${bob}) rotate(${tilt} 0 ${BELLY_Y})`}
           onMouseEnter={() => {
             setHover(true);
-            say();
+            stopAndTalk();
           }}
           onMouseLeave={() => {
             setHover(false);
-            quiet(2500);
+            letGo(2500, 800);
           }}
           onClick={() => {
-            say();
-            quiet(3500);
+            stopAndTalk();
+            letGo(3500, 2200);
           }}
           className="cursor-pointer"
           data-cursor
-          transform={`rotate(${wobble} ${VAC_X} ${BELT_Y})`}
         >
-          {/* squash on each gulp, anchored on the belt */}
-          <g transform={`translate(${VAC_X} ${BELT_Y}) scale(${1 + gulp * 0.08} ${1 - gulp * 0.1}) translate(${-VAC_X} ${-BELT_Y})`}>
-            {/* wheels */}
-            <ellipse cx={VAC_X - 30} cy={BELT_Y - 2} rx="9" ry="5" className="fill-stone-700 dark:fill-stone-400" />
-            <ellipse cx={VAC_X + 30} cy={BELT_Y - 2} rx="9" ry="5" className="fill-stone-700 dark:fill-stone-400" />
-            {/* side wall + bumper */}
-            <path d={`M${VAC_X - 52} 116v18a52 18 0 0 0 104 0v-18z`} className="fill-coral-400 dark:fill-coral-500" />
-            <path d={`M${VAC_X - 52} 128a52 18 0 0 0 104 0`} fill="none" strokeWidth="3" className="stroke-coral-600/50" />
-            {/* mouth slot at the front-left, where cells go in */}
-            <ellipse cx={MOUTH_X + 6} cy="132" rx="6" ry="9" className="fill-stone-800 dark:fill-stone-900" />
-            {/* top shell */}
-            <ellipse cx={VAC_X} cy="116" rx="52" ry="18" className="fill-stone-50 stroke-coral-500 dark:fill-stone-100" strokeWidth="2.5" />
-            <ellipse cx={VAC_X - 14} cy="110" rx="18" ry="5" fill="#fff" opacity=".7" />
-            {/* antenna */}
-            <line x1={VAC_X + 22} y1="104" x2={VAC_X + 28} y2="90" strokeWidth="2.5" strokeLinecap="round" className="stroke-coral-600" />
-            <circle cx={VAC_X + 29} cy="87" r={4 + gulp * 2} className="fill-coral-400" />
-            <circle cx={VAC_X + 29} cy="87" r={8 + gulp * 6} className="fill-coral-300" opacity={0.25 + gulp * 0.4} />
-            {/* face */}
-            {hover ? (
-              <path d={`M${VAC_X - 19} 117q6-8 12 0M${VAC_X + 7} 117q6-8 12 0`} strokeWidth="2.8" fill="none" strokeLinecap="round" className="stroke-stone-900" />
-            ) : blink ? (
-              <path d={`M${VAC_X - 19} 116h12M${VAC_X + 7} 116h12`} strokeWidth="2.8" strokeLinecap="round" className="stroke-stone-900" />
-            ) : (
-              <g>
-                {[-13, 13].map((ox) => (
-                  <g key={ox}>
-                    <ellipse cx={VAC_X + ox + look.x * 0.4} cy={116 + look.y * 0.3} rx="7.5" ry="8.5" className="fill-stone-900" />
-                    <circle cx={VAC_X + ox - 2.4 + look.x} cy={113 + look.y} r="2.8" fill="#fff" />
-                    <circle cx={VAC_X + ox + 2.6 + look.x * 0.6} cy={119 + look.y * 0.6} r="1.2" fill="#fff" />
-                  </g>
-                ))}
-              </g>
-            )}
-            {/* ω mouth: opens into an "o" mid-gulp */}
-            {gulp > 0.3 ? (
-              <ellipse cx={VAC_X} cy="126" rx="3.2" ry={2 + gulp * 2.5} className="fill-stone-900" />
-            ) : (
-              <path d={`M${VAC_X - 5} 125q2.5 3.5 5 0q2.5 3.5 5 0`} strokeWidth="2" fill="none" strokeLinecap="round" className="stroke-stone-900" />
-            )}
-            <ellipse cx={VAC_X - 27} cy="123" rx="6" ry="3.5" className="fill-coral-300" opacity=".8" />
-            <ellipse cx={VAC_X + 27} cy="123" rx="6" ry="3.5" className="fill-coral-300" opacity=".8" />
+          {/* hit area so hover is easy to land */}
+          <rect x="-36" y="26" width="72" height="112" fill="transparent" />
+          {/* arms */}
+          <g transform={`rotate(${12 + swing} -22 92)`}>
+            <ellipse cx="-27" cy="104" rx="7.5" ry="14" fill={`url(#${g("pink")})`} />
           </g>
+          <g transform={`rotate(${-12 - swing} 22 92)`}>
+            <ellipse cx="27" cy="104" rx="7.5" ry="14" fill={`url(#${g("pink")})`} />
+          </g>
+          {/* body */}
+          <ellipse cx="0" cy={BELLY_Y} rx="22" ry="25" fill={`url(#${g("shell")})`} />
+          <path d="M-17 121a22 25 0 0 0 34 0q-17 8-34 0z" fill={`url(#${g("pink")})`} />
+          <circle cx="0" cy={BELLY_Y - 2} r="8.5" fill={`url(#${g("pink")})`} />
+          <ellipse cx="-2.5" cy={BELLY_Y - 5} rx="3" ry="2" fill="#fff" opacity=".7" />
+          <ellipse cx="-9" cy={BELLY_Y - 12} rx="5" ry="8" fill="#fff" opacity=".55" />
+          {/* neck */}
+          <ellipse cx="0" cy="84" rx="12" ry="4" fill="#e6d7bd" />
+          {/* ears */}
+          {[-27, 27].map((ex) => (
+            <g key={ex}>
+              <circle cx={ex} cy={HEAD_Y + 2} r="8.5" fill={`url(#${g("gold")})`} />
+              <circle cx={ex} cy={HEAD_Y + 2} r="6" fill={`url(#${g("shell")})`} />
+              <circle cx={ex} cy={HEAD_Y + 2} r="2.6" fill={`url(#${g("gold")})`} />
+            </g>
+          ))}
+          {/* head with pink cap */}
+          <circle cx="0" cy={HEAD_Y} r="27" fill={`url(#${g("shell")})`} />
+          <g clipPath={`url(#${g("head")})`}>
+            <ellipse cx="0" cy={HEAD_Y - 30} rx="30" ry="14" fill={`url(#${g("pink")})`} />
+          </g>
+          {/* visor */}
+          <rect x="-21" y={HEAD_Y - 13} width="42" height="29" rx="14.5" fill={`url(#${g("visor")})`} stroke={`url(#${g("gold")})`} strokeWidth="1.6" />
+          {/* eyes: glowing blue, follow the cursor; happy arcs while chatting */}
+          <g filter={`url(#${g("glow")})`}>
+            {hover || talking ? (
+              // cursor on it: happy ^ ^ eyes and a big glowing smile
+              <g transform={`translate(${look.x * 0.5} ${look.y * 0.4})`} stroke="#8ff0e4" strokeWidth="2.6" fill="none" strokeLinecap="round">
+                <path d={`M-12 ${HEAD_Y}q4.5-7 9 0M3 ${HEAD_Y}q4.5-7 9 0`} />
+                <path d={`M-7 ${HEAD_Y + 6}q7 7 14 0`} />
+              </g>
+            ) : (
+              [-7.5, 7.5].map((ox) => (
+                <g key={ox} transform={`translate(${ox + look.x} ${HEAD_Y + 1 + look.y})`}>
+                  <ellipse rx="4.4" ry={blink ? 0.8 : 6.4} fill="#3fd1c2" />
+                  {!blink && <ellipse rx="2.4" ry="4" fill="#bff7ef" opacity=".85" />}
+                </g>
+              ))
+            )}
+          </g>
+          {(hover || talking) && (
+            <g fill="#f49e8c" opacity=".55">
+              <ellipse cx="-17" cy={HEAD_Y + 18} rx="5" ry="2.6" />
+              <ellipse cx="17" cy={HEAD_Y + 18} rx="5" ry="2.6" />
+            </g>
+          )}
+          {/* glossy reflections */}
+          <path d={`M-15 ${HEAD_Y - 8}q8-5 18-4`} stroke="#fff" strokeOpacity=".35" strokeWidth="2.4" fill="none" strokeLinecap="round" />
+          <ellipse cx="-12" cy={HEAD_Y - 18} rx="7" ry="4" fill="#fff" opacity=".7" />
         </g>
 
-        {/* slurp effects: swirl at the mouth while eating, then whoosh + sparkles */}
-        {!calm && sinceSlurp < 0.5 && (
-          <path
-            d={`M${MOUTH_X - 26} 120q10 12 24 10M${MOUTH_X - 30} 136q12-4 26 0M${MOUTH_X - 24} 150q10-12 22-12`}
-            fill="none"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeDasharray="3 3"
-            className="stroke-stone-400"
-          />
-        )}
-        {!calm && sinceSlurp > 0.3 && sinceSlurp < 1.1 && (
-          <g opacity={1 - Math.max(0, sinceSlurp - 0.7) / 0.4}>
-            <text x={VAC_X + 34} y={BELT_Y - 70 - (sinceSlurp - 0.3) * 14} fontSize="15" className={`fill-coral-600 dark:fill-coral-300 ${fun.className}`}>
-              whoosh!
-            </text>
-            {[
-              [VAC_X + 62, 100, 1],
-              [VAC_X + 78, 122, 0.7],
-              [VAC_X + 54, 128, 0.55],
-            ].map(([x, y, s], i) => (
-              <path
-                key={i}
-                transform={`translate(${x} ${y - (sinceSlurp - 0.3) * 16}) scale(${s * (0.6 + (sinceSlurp - 0.3))})`}
-                d="M0-7l2 5 5 2-5 2-2 5-2-5-5-2 5-2z"
-                className="fill-amber-300"
-              />
-            ))}
-          </g>
-        )}
-
         {/* speech bubble */}
-        {/* one bubble at a time; keyed by line so each new line fades in fresh */}
         {talking && line && (
-            <motion.g key={said} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
-              <rect x={bubbleX} y="44" width={bubbleW} height="26" rx="13" strokeWidth="2" className="fill-stone-50 stroke-coral-500 dark:fill-stone-800 dark:stroke-coral-300" />
-              <path d={`M${VAC_X - 6} 69l6 9 6-9`} strokeWidth="2" className="fill-stone-50 stroke-coral-500 dark:fill-stone-800 dark:stroke-coral-300" />
-              <rect x={VAC_X - 7} y="66" width="14" height="3" className="fill-stone-50 dark:fill-stone-800" />
-              <text x={bubbleX + bubbleW / 2} y="61.5" textAnchor="middle" fontSize="13" className={`fill-stone-900 dark:fill-stone-50 ${fun.className}`}>
-                {line}
-              </text>
-            </motion.g>
+          <motion.g key={said} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.18 }}>
+            <rect x={bubbleX} y="0" width={bubbleW} height="24" rx="12" strokeWidth="2" className="fill-stone-50 stroke-coral-400 dark:fill-stone-800 dark:stroke-coral-300" />
+            <text x={bubbleX + bubbleW / 2} y="16.5" textAnchor="middle" fontSize="13" className={`fill-stone-900 dark:fill-stone-50 ${fun.className}`}>
+              {line}
+            </text>
+          </motion.g>
         )}
       </svg>
-      <p className="mt-1 font-mono text-[11px] text-stone-500">hover the little vacuum to chat · it&apos;s cleaning your data live</p>
+      <p className="mt-1 font-mono text-[11px] text-stone-500">put your cursor on the robot to say hi · it&apos;s cleaning your data live</p>
     </div>
   );
 }
@@ -411,6 +546,7 @@ function CellView({
   rotate = 0,
   scale = 1,
   opacity = 1,
+  glow = false,
 }: {
   x: number;
   y: number;
@@ -420,6 +556,7 @@ function CellView({
   rotate?: number;
   scale?: number;
   opacity?: number;
+  glow?: boolean;
 }) {
   const box =
     kind === "bad"
@@ -430,6 +567,8 @@ function CellView({
   const ink = kind === "bad" ? "fill-coral-700 dark:fill-coral-300" : kind === "clean" ? "fill-sea-700 dark:fill-sea-200" : "fill-stone-700 dark:fill-stone-200";
   return (
     <g transform={`translate(${x} ${y}) rotate(${rotate} ${w / 2} ${CELL_H / 2}) translate(${w / 2} ${CELL_H / 2}) scale(${Math.max(scale, 0.001)}) translate(${-w / 2} ${-CELL_H / 2})`} opacity={opacity}>
+      {/* the cell the robot is working on gets a soft teal scan glow */}
+      {glow && <rect x="-3" y="-3" width={w + 6} height={CELL_H + 6} rx="7" fill="#3fd1c2" opacity=".3" />}
       <rect width={w} height={CELL_H} rx="5" className={box} strokeWidth="1.2" />
       <text x={w / 2} y="16" textAnchor="middle" fontSize="12" style={{ fontFamily: MONO, whiteSpace: "pre" }} className={ink}>
         {text}

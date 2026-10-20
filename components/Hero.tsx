@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { profile } from "@/data/profile";
 import { RobotHero } from "./RobotHero";
 
-// Hero: a cute robot vacuum slurps bad data off a conveyor belt and turns the good cells into clean
+// Hero: a glossy little robot floats along a conveyor belt, bubbling away bad data and polishing good cells into clean
 // facts under the name, on the page's sky (sunrise in light mode, stars in dark mode). The résumé lives in the navbar's sand bucket.
 export function Hero() {
   return (
