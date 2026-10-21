@@ -7,7 +7,28 @@ import { motion, useMotionValueEvent, useReducedMotion, useScroll, useTransform,
 // below over the last one, a line of foam on its leading edge; the card underneath sinks back,
 // shrinks a little and goes soft, like something left behind on wet sand. A slim tide gauge on the
 // side fills with water as you go. Everything follows the scroll and reverses if you scroll back.
-// Small or short screens (and reduced motion) get a plain list instead, so nothing gets cramped.
+// Phones and short screens get a lighter version, Wash in: each card washes up with foam as it
+// scrolls into view and settles back as it leaves, so nothing has to fit in one pinned screen.
+// Reduced motion gets a plain list.
+
+// A ragged line of foam along a card's top edge.
+function Foam({ opacity }: { opacity: MotionValue<number> }) {
+  return (
+    <motion.svg
+      aria-hidden
+      viewBox="0 0 400 20"
+      preserveAspectRatio="none"
+      style={{ opacity }}
+      className="pointer-events-none absolute inset-x-2 -top-3 z-10 h-5 w-[calc(100%-1rem)]"
+    >
+      <path
+        d="M0 14C18 6 30 16 48 10s34 4 52-1 30 7 50 2 36-6 54 0 30 6 50 0 32-5 50 1 30 4 46-2 32 5 50 0V20H0Z"
+        className="fill-white/85 dark:fill-sea-200/40"
+      />
+      <path d="M0 14C18 6 30 16 48 10s34 4 52-1 30 7 50 2 36-6 54 0 30 6 50 0 32-5 50 1 30 4 46-2 32 5 50 0" fill="none" className="stroke-sea-300/70" strokeWidth="1.5" />
+    </motion.svg>
+  );
+}
 
 function Card({ i, f, children }: { i: number; f: MotionValue<number>; children: React.ReactNode }) {
   // local < 0: still rolling in from below; 0: current; > 0: being covered by the next one
@@ -25,22 +46,8 @@ function Card({ i, f, children }: { i: number; f: MotionValue<number>; children:
 
   return (
     <motion.div style={{ y: i === 0 ? undefined : y, scale, opacity, rotate, zIndex: i, pointerEvents }} className="absolute inset-x-0 top-0 origin-top will-change-transform">
-      {i > 0 && (
-        // a ragged line of foam riding the top edge while the card comes in
-        <motion.svg
-          aria-hidden
-          viewBox="0 0 400 20"
-          preserveAspectRatio="none"
-          style={{ opacity: foam }}
-          className="pointer-events-none absolute inset-x-2 -top-3 z-10 h-5 w-[calc(100%-1rem)]"
-        >
-          <path
-            d="M0 14C18 6 30 16 48 10s34 4 52-1 30 7 50 2 36-6 54 0 30 6 50 0 32-5 50 1 30 4 46-2 32 5 50 0V20H0Z"
-            className="fill-white/85 dark:fill-sea-200/40"
-          />
-          <path d="M0 14C18 6 30 16 48 10s34 4 52-1 30 7 50 2 36-6 54 0 30 6 50 0 32-5 50 1 30 4 46-2 32 5 50 0" fill="none" className="stroke-sea-300/70" strokeWidth="1.5" />
-        </motion.svg>
-      )}
+      {/* foam riding the top edge while the card comes in */}
+      {i > 0 && <Foam opacity={foam} />}
       {/* solid backing so the card underneath doesn't show through the glassy card; if an opened
           demo makes it taller than the screen it scrolls, and the wheel passes on to the page at the end */}
       <div className="relative max-h-[calc(100vh-11rem)] overflow-y-auto rounded-3xl bg-stone-50 dark:bg-stone-950">
@@ -89,7 +96,18 @@ export function WaveStack({ items, labels }: { items: React.ReactNode[]; labels:
     return () => mq.removeEventListener("change", set);
   }, []);
 
-  if (calm || !roomy) {
+  if (!calm && !roomy) {
+    return (
+      <div className="space-y-10">
+        {items.map((it, i) => (
+          <WashIn key={labels[i]} i={i}>
+            {it}
+          </WashIn>
+        ))}
+      </div>
+    );
+  }
+  if (calm) {
     return (
       <div className="space-y-10">
         {items.map((it, i) => (
@@ -99,6 +117,26 @@ export function WaveStack({ items, labels }: { items: React.ReactNode[]; labels:
     );
   }
   return <PinnedStack items={items} labels={labels} />;
+}
+
+// Phone version: the card follows its own trip through the screen. It rises in from below a little
+// crooked with foam on top, straightens and stays clear while you read, then sinks back as it leaves.
+function WashIn({ i, children }: { i: number; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  // 0: card's top reaches the bottom of the screen, 1: its bottom leaves the top
+  const { scrollYProgress: t } = useScroll({ target: ref, offset: ["start end", "end start"] });
+  const tilt = i % 2 ? 1.6 : -1.6;
+  const y = useTransform(t, [0, 0.3, 0.75, 1], [70, 0, 0, -24]);
+  const rotate = useTransform(t, [0, 0.3], [tilt, 0]);
+  const scale = useTransform(t, [0, 0.3, 0.75, 1], [0.94, 1, 1, 0.96]);
+  const opacity = useTransform(t, [0, 0.22, 0.8, 1], [0.25, 1, 1, 0.55]);
+  const foam = useTransform(t, [0, 0.12, 0.3, 0.36], [0, 1, 1, 0]);
+  return (
+    <motion.div ref={ref} style={{ y, rotate, scale, opacity }} className="relative will-change-transform">
+      <Foam opacity={foam} />
+      {children}
+    </motion.div>
+  );
 }
 
 // Separate component so useScroll attaches once the track is actually in the page.
